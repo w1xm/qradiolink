@@ -29,6 +29,8 @@
 #include <QElapsedTimer>
 #include <QImage>
 #include <QtConcurrent/QtConcurrent>
+#include <QProcess>
+#include <iostream>
 #include <unistd.h>
 #include <cmath>
 #include <gnuradio/digital/crc32.h>
@@ -204,6 +206,7 @@ private:
     void getConstellationData();
     void getRSSI();
     void setRelays(bool transmitting);
+    bool setPTTOut(bool ptt);
     void memoryScan(bool receiving, bool wait_for_timer=true);
     bool processMixerQueue();
     void updateCWK();

@@ -870,6 +870,26 @@ void RadioController::setRelays(bool transmitting)
 
 }
 
+bool RadioController::setPTTOut(bool ptt)
+{
+    QProcess proc;
+    proc.setProcessChannelMode(QProcess::ForwardedChannels);
+    QStringList args;
+    if (ptt) {
+	args << "tx";
+    } else {
+	args << "rx";
+    }
+    proc.start("/ptt", args);
+    if (!proc.waitForFinished()) {
+	return false;
+    }
+    if (proc.exitStatus() != QProcess::NormalExit || proc.exitCode() != 0) {
+	return false;
+    }
+    return true;
+}
+
 void RadioController::startTx()
 {
     updateInputAudioStream(); // moved here, LimeSDR specific thing (calibration at low power)
@@ -893,6 +913,10 @@ void RadioController::startTx()
         }
 
         setRelays(true);
+	if (!setPTTOut(true)) {
+	    // Not safe to start TX if PTT failed
+	    return;
+	}
         _modem->tuneTx(_tx_frequency + _settings->tx_shift);
         _modem->setTxPower((float)_settings->tx_power/100);
 
@@ -972,6 +996,7 @@ void RadioController::endTx()
     _modem->flushSources();
     /// On the LimeSDR mini, whenever I call setTxPower I get a brief spike of the LO
     setRelays(false);
+    setPTTOut(false);
     if(!_settings->enable_duplex)
     {
         _modem->enableDemod(true);
