@@ -882,9 +882,11 @@ bool RadioController::setPTTOut(bool ptt)
     }
     proc.start("/ptt", args);
     if (!proc.waitForFinished()) {
+	qWarning() << "PTT failed to finish in time";
 	return false;
     }
     if (proc.exitStatus() != QProcess::NormalExit || proc.exitCode() != 0) {
+	qWarning() << "PTT returned status " << proc.exitStatus() << " code " << proc.exitCode();
 	return false;
     }
     return true;
@@ -915,6 +917,7 @@ void RadioController::startTx()
         setRelays(true);
 	if (!setPTTOut(true)) {
 	    // Not safe to start TX if PTT failed
+	    qWarning() << "Failed to enable PTT! Not starting TX";
 	    return;
 	}
         _modem->tuneTx(_tx_frequency + _settings->tx_shift);
